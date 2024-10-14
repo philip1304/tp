@@ -111,7 +111,7 @@ public class HelpCommand extends Command {
             } else {
                 logger.warning("Unknown command received: " + command);
                 System.out.println("Unknown command: " + command);
-                System.out.println("Available commands: " + String.join(", ", VALID_COMMANDS));
+                System.out.println("Available commands:\n  " + String.join(", ", VALID_COMMANDS));
                 System.out.println("Type 'help <command>' for more information on a specific command.");
             }
         }
