@@ -3,6 +3,10 @@ package seedu.pill.command;
 import seedu.pill.exceptions.PillException;
 import seedu.pill.util.ItemList;
 import seedu.pill.util.Storage;
+import seedu.pill.util.StringMatcher;
+
+import java.util.Arrays;
+import java.util.List;
 import java.util.logging.Logger;
 
 /**
@@ -10,6 +14,8 @@ import java.util.logging.Logger;
  */
 public class HelpCommand extends Command {
     private static final Logger logger = Logger.getLogger(HelpCommand.class.getName());
+    private static final List<String> VALID_COMMANDS = Arrays.asList("help", "add", "delete", "edit", "list", "quit");
+
     private String commandName;
     private boolean verbose;
 
@@ -75,29 +81,39 @@ public class HelpCommand extends Command {
         assert command != null : "Command cannot be null";
         logger.info("Showing specific help for command: " + command);
 
-        switch (command.toLowerCase()) {
-        case "help":
-            showHelpHelp();
-            break;
-        case "add":
-            showAddHelp();
-            break;
-        case "delete":
-            showDeleteHelp();
-            break;
-        case "edit":
-            showEditHelp();
-            break;
-        case "list":
-            showListHelp();
-            break;
-        case "quit":
-            showQuitHelp();
-            break;
-        default:
-            System.out.println("Unknown command: " + command);
-            System.out.println("Available commands: help, add, delete, edit, list, quit");
-            System.out.println("Type 'help <command>' for more information on a specific command.");
+        String lowerCaseCommand = command.toLowerCase();
+        if (VALID_COMMANDS.contains(lowerCaseCommand)) {
+            switch (command.toLowerCase()) {
+            case "help":
+                showHelpHelp();
+                break;
+            case "add":
+                showAddHelp();
+                break;
+            case "delete":
+                showDeleteHelp();
+                break;
+            case "edit":
+                showEditHelp();
+                break;
+            case "list":
+                showListHelp();
+                break;
+            case "quit":
+                showQuitHelp();
+                break;
+            }
+        } else {
+            String closestMatch = StringMatcher.findClosestMatch(command, VALID_COMMANDS);
+            if (closestMatch != null) {
+                System.out.println("Did you mean '" + closestMatch + "'?");
+                System.out.println("Type 'help " + closestMatch + "' for more information.");
+            } else {
+                logger.warning("Unknown command received: " + command);
+                System.out.println("Unknown command: " + command);
+                System.out.println("Available commands: " + String.join(", ", VALID_COMMANDS));
+                System.out.println("Type 'help <command>' for more information on a specific command.");
+            }
         }
     }
 
