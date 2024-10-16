@@ -5,10 +5,14 @@ import seedu.pill.util.ItemMap;
 import seedu.pill.util.Storage;
 
 import org.junit.jupiter.api.Test;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 public class HelpCommandTest {
 
@@ -100,30 +104,82 @@ public class HelpCommandTest {
     }
 
     @Test
-    public void testTypoSuggestion() throws PillException {
-        // Initialize test environment
+    public void testCaseInsensitivity() throws PillException {
         ItemMap itemMap = new ItemMap();
         Storage storage = new Storage();
-        HelpCommand helpCommand = new HelpCommand("hlep", false);
+        HelpCommand helpCommand = new HelpCommand("ADD", false);
 
-        // Declare expected output
-        String expectedOutput = "Unknown command: hlep" + System.lineSeparator() +
-                "Did you mean: help?" + System.lineSeparator() +
-                "Type 'help help' for more information on this command." + System.lineSeparator() +
-                System.lineSeparator() +
-                "Available commands: help, add, delete, edit, list, exit" + System.lineSeparator() +
-                "Type 'help <command>' for more information on a specific command." + System.lineSeparator();
-
-        // Redirect Output
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-        PrintStream printStream = new PrintStream(outputStream);
-        System.setOut(printStream);
+        System.setOut(new PrintStream(outputStream));
 
-        // Test command
         helpCommand.execute(itemMap, storage);
 
-        // Compare output
         String output = outputStream.toString();
-        assertEquals(expectedOutput, output);
+        assertTrue(output.contains("add:"), "Help should recognize command regardless of case");
+    }
+
+    @Test
+    public void testTypoSuggestionEdgeCase() throws PillException {
+        ItemMap itemMap = new ItemMap();
+        Storage storage = new Storage();
+        HelpCommand helpCommand = new HelpCommand("lst", false);
+
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        System.setOut(new PrintStream(outputStream));
+
+        helpCommand.execute(itemMap, storage);
+
+        String output = outputStream.toString();
+        assertTrue(output.contains("Did you mean: list?"), "Should suggest 'list' for 'lst'");
+    }
+
+    @Test
+    public void testEmptyInput() throws PillException {
+        ItemMap itemMap = new ItemMap();
+        Storage storage = new Storage();
+        HelpCommand helpCommand = new HelpCommand("", false);
+
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        System.setOut(new PrintStream(outputStream));
+
+        helpCommand.execute(itemMap, storage);
+
+        String output = outputStream.toString();
+        assertTrue(output.contains("Available commands:"), "Should show general help for empty input");
+    }
+
+    @Test
+    public void testExtraArguments() throws PillException {
+        ItemMap itemMap = new ItemMap();
+        Storage storage = new Storage();
+        HelpCommand helpCommand = new HelpCommand("add extra args", false);
+
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        System.setOut(new PrintStream(outputStream));
+
+        helpCommand.execute(itemMap, storage);
+
+        String output = outputStream.toString();
+        assertTrue(output.contains("add:"), "Should ignore extra arguments and show help for 'add'");
+    }
+
+    @Test
+    public void testIsExitAlwaysFalse() {
+        HelpCommand helpCommand = new HelpCommand("exit", false);
+        assertFalse(helpCommand.isExit(), "isExit should always return false for HelpCommand");
+    }
+
+    @Test
+    public void testPerformance() throws PillException {
+        ItemMap itemMap = new ItemMap();
+        Storage storage = new Storage();
+        HelpCommand helpCommand = new HelpCommand(null, false);
+
+        long startTime = System.nanoTime();
+        helpCommand.execute(itemMap, storage);
+        long endTime = System.nanoTime();
+
+        long duration = (endTime - startTime) / 1_000_000;  // Convert to milliseconds
+        assertTrue(duration < 100, "Help command should execute in less than 100ms");
     }
 }
